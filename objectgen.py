@@ -73,4 +73,24 @@ def generate_line( npixels ):
         ycoord = int(round(y))
         if res[-1]!=(xcoord,ycoord):
             res.append((xcoord,ycoord))
-    return res       
+    return res
+
+def generate_curve( r, cfrac ):
+    ### generate a curved line
+    # input arguments:
+    # - r: radius of curvature in number of pixels
+    # - cfrac: fraction of the full circle covered by the line
+    rng = np.random.default_rng()
+    # generate random opening angle
+    theta1 = rng.uniform()*2*math.pi
+    theta2 = theta1 + cfrac*2*math.pi
+    # travel along circle segment and add all pixels
+    res = [(int(r*math.cos(theta1)),int(r*math.sin(theta1)))]
+    nsteps = r*20
+    for t in range(nsteps):
+        theta = theta1+t/nsteps*(theta2-theta1)
+        xcoord = int(r*math.cos(theta))
+        ycoord = int(r*math.sin(theta))
+        if res[-1]!=(xcoord,ycoord):
+            res.append((xcoord,ycoord))
+    return res   
