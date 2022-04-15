@@ -120,11 +120,11 @@ class EVIFile():
 
     def shape(self):
         ### show the dimension of the image
-        print("(H, W, frames) = ", [self.height, self.width, self.nimages])
+        #print("(H, W, frames) = ", [self.height, self.width, self.nimages])
         return (self.height, self.width, self.nimages)
 
 
 def EVIRead(filename):
-    ### utility function to read the EVI data and header directly"
+    ### utility function to read the EVI data and header directly
     evi = EVIFile(filename)
     return evi
