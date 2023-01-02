@@ -1,4 +1,5 @@
 import numpy as np
+import reco
 
 
 def count_objects_pixels( image ):
@@ -20,19 +21,27 @@ def count_objects_simple( image ):
     newcoords = []
     for i,coord in enumerate(coords):
         valid = True
-        print(coord)
         for testcoord in coords[:i]:
             if( abs(coord[0]-testcoord[0])<2 and abs(coord[1]-testcoord[1])<2 ):
                 valid = False
-                print('reject')
                 break
         if valid: newcoords.append(coord)
     return newcoords
 
-def count_objects_cluster( image ):
+def count_objects_cluster( image, returntype='center' ):
     ### object counting method using proximity clusters
     # method: essentially equal to count_objects_simple,
     #         but more clever way of removing double counting
+    # returns: depends on returntype argument:
+    # - 'first': return list with tuples of first point coordinates (one per cluster).
+    #   for each cluster, the first point is returned.
+    #   this requires no extra calculation, but the choice of 'first point' is arbitrary
+    #   and might depend on the used clustering algorithm.
+    # - 'center': return list with tuples of central point coordinates (one per cluster).
+    #   for each cluster, the central point is returned.
+    #   see reco.py / center for the definition of the central point.
+    # - 'full': return list of lists with tuples of cluster point coordinates.
+    #   for each cluster, the full list of points is returned.
     coords = count_objects_pixels(image)
     clusters = []
     unclustered = [True]*len(coords)
@@ -61,7 +70,31 @@ def count_objects_cluster( image ):
                         break
         # add the cluster for this point
         clusters.append(cluster)
-    # format the result as the coordinates of the first point in each cluster
+    # format the result
     res = []
-    for cluster in clusters: res.append(coords[cluster[0]])
+    for cluster in clusters:
+        if returntype=='first':
+            res.append( coords[cluster[0]] )
+        elif( returntype=='full' or returntype=='center' ):
+            clustercoords = [coords[i] for i in cluster]
+            if returntype=='full':
+                res.append( clustercoords )
+            elif returntype=='center':
+                center = reco.center( clustercoords )
+                res.append(center)
+        else:
+            msg = 'ERROR in counting.py / count_objects_cluster:'
+            msg += 'returntype "{}" not recognized.'.format(returntype)
+            raise Exception(msg)
     return res
+
+def reco_objects( image ):
+    ### extension of count_objects_cluster with determination of cluster type
+    clusters = count_objects_cluster( image, returntype='full' )
+    cinfos = []
+    for cluster in clusters:
+        center = reco.center(cluster)
+        ctype = reco.cluster_type(cluster)
+        cinfo = {'coords': center, 'type': ctype}
+        cinfos.append(cinfo)
+    return cinfos
